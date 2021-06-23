@@ -32,6 +32,10 @@ export enum SortingTypes {
   SORT_DESC,
   SORT_CREATEDAT,
   SORT_RATINGS,
+  SORT_AVG_VALUE,
+  SORT_AVG_WORK,
+  SORT_TOTAL_VALUE,
+  SORT_TOTAL_WORK,
 }
 
 const averageRatingsByDimension = (
@@ -92,6 +96,53 @@ export const calcTaskPriority = (task: Task) => {
   return avgBusinessRating / avgWorkRating;
 };
 
+export const calcTaskValueSum = (task: Task) => {
+  let ratingValuesSum = 0;
+  task.ratings.forEach((rating) => {
+    if (rating.dimension !== TaskRatingDimension.BusinessValue) return;
+    ratingValuesSum += rating.value;
+  });
+
+  return ratingValuesSum;
+};
+
+export const calcTaskWorkSum = (task: Task) => {
+  let ratingWorkSum = 0;
+  task.ratings.forEach((rating) => {
+    if (rating.dimension !== TaskRatingDimension.RequiredWork) return;
+    ratingWorkSum += rating.value;
+  });
+
+  return ratingWorkSum;
+};
+
+export const calcAverageTaskWorkSum = (task: Task) => {
+  let ratingWorkSum = 0;
+  let count = 0;
+  task.ratings.forEach((rating) => {
+    if (rating.dimension !== TaskRatingDimension.RequiredWork) return;
+    count += 1;
+    ratingWorkSum += rating.value;
+  });
+  const avg = ratingWorkSum / count;
+  // Round float numbers to 1 decimals
+  return Math.round(avg * 10) / 10;
+};
+
+export const calcAverageTaskValue = (task: Task) => {
+  let ratingValuesSum = 0;
+  let count = 0;
+  task.ratings.forEach((rating) => {
+    if (rating.dimension !== TaskRatingDimension.BusinessValue) return;
+    count += 1;
+    ratingValuesSum += rating.value;
+  });
+
+  const avg = ratingValuesSum / count;
+  // Round float numbers to 1 decimals
+  return Math.round(avg * 10) / 10;
+};
+
 export const filterTasksRatedByUser = (userId: number = -1, rated: boolean) => {
   return (task: Task) => {
     if (
@@ -146,6 +197,14 @@ const taskCompare = (
       return sortKeyNumeric((t) => +t.completed);
     case SortingTypes.SORT_RATINGS:
       return sortKeyNumeric(calcTaskPriority);
+    case SortingTypes.SORT_AVG_VALUE:
+      return sortKeyNumeric(calcAverageTaskValue);
+    case SortingTypes.SORT_AVG_WORK:
+      return sortKeyNumeric(calcAverageTaskWorkSum);
+    case SortingTypes.SORT_TOTAL_VALUE:
+      return sortKeyNumeric(calcTaskValueSum);
+    case SortingTypes.SORT_TOTAL_WORK:
+      return sortKeyNumeric(calcTaskWorkSum);
     default:
       // SortingTypes.NO_SORT
       break;
@@ -188,15 +247,6 @@ export const dragDropBetweenLists = (
     [droppableSource.droppableId]: sourceClone,
     [droppableDestination.droppableId]: destClone,
   };
-};
-export const calcTaskValueSum = (task: Task) => {
-  let ratingValuesSum = 0;
-  task.ratings.forEach((rating) => {
-    if (rating.dimension !== TaskRatingDimension.BusinessValue) return;
-    ratingValuesSum += rating.value;
-  });
-
-  return ratingValuesSum;
 };
 
 export const calcTaskWeightedValueSum = (

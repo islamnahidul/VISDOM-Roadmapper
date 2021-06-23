@@ -6,7 +6,7 @@ import { PlannerChart } from '../components/PlannerChart';
 import { RoadmapCompletionMeter } from '../components/RoadmapCompletionMeter';
 import { RoadmapOverview } from '../components/RoadmapOverview';
 import { TaskHeatmap } from '../components/TaskHeatmap';
-import { TaskTable } from '../components/TaskTable';
+import { TaskTableUnrated } from '../components/TaskTableUnrated';
 import { StoreDispatchType } from '../redux';
 import { chosenRoadmapSelector } from '../redux/roadmaps/selectors';
 import { Roadmap, Task } from '../redux/roadmaps/types';
@@ -124,7 +124,7 @@ export const DashboardPage = () => {
         <p className={classes(css.header)}>
           <Trans i18nKey="Unrated tasks" />
         </p>
-        <TaskTable tasks={getUnratedTasks()} nofilter />
+        <TaskTableUnrated tasks={getUnratedTasks()} />
       </div>
     </>
   );

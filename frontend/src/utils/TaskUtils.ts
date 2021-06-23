@@ -1,5 +1,11 @@
 import { DraggableLocation } from 'react-beautiful-dnd';
-import { Customer, Roadmap, Task, Taskrating } from '../redux/roadmaps/types';
+import {
+  Customer,
+  Roadmap,
+  RoadmapUser,
+  Task,
+  Taskrating,
+} from '../redux/roadmaps/types';
 import { customerWeight } from './CustomerUtils';
 import { UserInfo } from '../redux/user/types';
 import {
@@ -318,4 +324,47 @@ export const taskAwaitsRatings = (task: Task, userInfo?: UserInfo) => {
         ),
     );
   return !task.ratings.find((rating) => rating.createdByUser === userInfo?.id);
+};
+
+export const tasksThatRequireRating: (
+  tasks: Task[],
+  allUsers: RoadmapUser[],
+  userInfo?: UserInfo,
+  currentRoadmap?: Roadmap,
+) => Task[] | undefined = (tasks, allUsers, userInfo, currentRoadmap) => {
+  const type = getType(userInfo?.roles, currentRoadmap?.id);
+  const allCustomers = currentRoadmap?.customers;
+
+  if (type === RoleType.Admin) {
+    const developers = allUsers?.filter(
+      (user) => user.type === RoleType.Developer,
+    );
+    const unrated = tasks?.filter((task) => {
+      const ratingIds = task.ratings.map((rating) => rating.createdByUser);
+
+      const unratedCustomers = allCustomers?.filter((customer) => {
+        const representativeIds = customer?.representatives?.map(
+          (rep) => rep.id,
+        );
+        return !representativeIds?.every((rep) => ratingIds?.includes(rep));
+      });
+
+      const missingDevs = developers?.filter(
+        (developer) => !ratingIds.includes(developer.id),
+      );
+
+      if (
+        unratedCustomers &&
+        unratedCustomers?.length < 1 &&
+        missingDevs &&
+        missingDevs?.length < 1
+      )
+        return false;
+      return true;
+    });
+    return unrated;
+  }
+
+  if (type !== RoleType.Admin)
+    return tasks.filter((task) => taskAwaitsRatings(task, userInfo));
 };

@@ -1,6 +1,8 @@
 FROM node:14
 WORKDIR /server
 EXPOSE 80
+EXPOSE 8080
+EXPOSE 5000
 
 
 COPY package.json ./

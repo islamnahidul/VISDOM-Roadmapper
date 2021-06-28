@@ -1,7 +1,6 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Circle } from 'react-bootstrap-icons';
 import BuildIcon from '@material-ui/icons/Build';
 import PermIdentityIcon from '@material-ui/icons/PermIdentity';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -12,7 +11,6 @@ import { StylesProvider } from '@material-ui/core/styles';
 import { StoreDispatchType } from '../redux';
 import { modalsActions } from '../redux/modals';
 import { ModalTypes } from '../redux/modals/types';
-import { roadmapsActions } from '../redux/roadmaps/index';
 import { Task, Customer, RoadmapUser } from '../redux/roadmaps/types';
 import { RootState } from '../redux/types';
 import { userInfoSelector } from '../redux/user/selectors';
@@ -22,15 +20,14 @@ import {
   roadmapUsersSelector,
   allCustomersSelector,
 } from '../redux/roadmaps/selectors';
-import { taskAwaitsRatings } from '../utils/TaskUtils';
-import { DeleteButton } from './forms/DeleteButton';
-import { EditButton } from './forms/EditButton';
-import { InfoButton } from './forms/InfoButton';
-import { RatingsButton } from './forms/RatingsButton';
-import { TaskRatingsText } from './TaskRatingsText';
 import { Dot } from './Dot';
 import { getType } from '../utils/UserUtils';
 import css from './TableUnratedTaskRow.module.scss';
+import {
+  calcAverageTaskValue,
+  calcAverageTaskWorkSum,
+  taskAwaitsRatings,
+} from '../utils/TaskUtils';
 
 const classes = classNames.bind(css);
 
@@ -40,7 +37,7 @@ interface TableTaskRowProps {
 
 export const TableUnratedTaskRow: React.FC<TableTaskRowProps> = ({ task }) => {
   const dispatch = useDispatch<StoreDispatchType>();
-  const { id, name, completed, roadmapId, description, createdAt } = task;
+  const { name, roadmapId } = task;
   const userInfo = useSelector<RootState, UserInfo | undefined>(
     userInfoSelector,
     shallowEqual,
@@ -98,44 +95,12 @@ export const TableUnratedTaskRow: React.FC<TableTaskRowProps> = ({ task }) => {
     }
   }, [task.ratings, allCustomers, allUsers, userInfo, type, task.roadmapId]);
 
-  const deleteTaskClicked = (e: React.MouseEvent<any, MouseEvent>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dispatch(roadmapsActions.deleteTask({ id, roadmapId }));
-  };
-
-  const editTaskClicked = (e: React.MouseEvent<any, MouseEvent>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dispatch(
-      modalsActions.showModal({
-        modalType: ModalTypes.EDIT_TASK_MODAL,
-        modalProps: {
-          taskId: task.id,
-        },
-      }),
-    );
-  };
-
   const rateTaskClicked = (e: React.MouseEvent<any, MouseEvent>) => {
     e.preventDefault();
     e.stopPropagation();
     dispatch(
       modalsActions.showModal({
         modalType: ModalTypes.RATE_TASK_MODAL,
-        modalProps: {
-          taskId: task.id,
-        },
-      }),
-    );
-  };
-
-  const taskRatingDetailsClicked = (e: React.MouseEvent<any, MouseEvent>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dispatch(
-      modalsActions.showModal({
-        modalType: ModalTypes.TASK_RATINGS_INFO_MODAL,
         modalProps: {
           taskId: task.id,
         },
@@ -156,10 +121,10 @@ export const TableUnratedTaskRow: React.FC<TableTaskRowProps> = ({ task }) => {
     );
   };
 
-  const toggleCompletedClicked = (e: React.MouseEvent<any, MouseEvent>) => {
+  // TO DO: open notification modal
+  const notifyUsersClicked = (e: React.MouseEvent<any, MouseEvent>) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch(roadmapsActions.patchTask({ id, completed: !completed }));
   };
 
   return (
@@ -167,23 +132,14 @@ export const TableUnratedTaskRow: React.FC<TableTaskRowProps> = ({ task }) => {
       className={classes(css.styledTr, css.clickable)}
       onClick={taskDetailsClicked}
     >
-      <td
-        className="styledTd clickable textAlignCenter"
-        onClick={toggleCompletedClicked}
-      >
-        {completed ? (
-          <CheckCircle onClick={toggleCompletedClicked} />
-        ) : (
-          <Circle onClick={toggleCompletedClicked} />
-        )}
+      <td className={`styledTd ${classes(css.taskTitle)}`}>{name}</td>
+      <td className={`styledTd ${classes(css.unratedTd)}`}>
+        {calcAverageTaskValue(task) || 0}
       </td>
-      <td className="styledTd">{name}</td>
-      <td className="styledTd">
-        {description.length > 75
-          ? `${description.slice(0, 75)}...`
-          : description}
+      <td className={`styledTd ${classes(css.unratedTd)}`}>
+        {calcAverageTaskWorkSum(task) || 0}
       </td>
-      <td className="styledTd">
+      <td className={`styledTd ${classes(css.unratedTd)}`}>
         <div className={classes(css.missingContainer)}>
           <StylesProvider injectFirst>
             {missingRatings && (
@@ -245,12 +201,16 @@ export const TableUnratedTaskRow: React.FC<TableTaskRowProps> = ({ task }) => {
           </StylesProvider>
         </div>
       </td>
-      <td className="styledTd nowrap">
-        <TaskRatingsText task={task} />
-      </td>
-      <td className="styledTd">{new Date(createdAt).toLocaleDateString()}</td>
-      <td className="styledTd textAlignEnd nowrap" style={{ width: '202px' }}>
-        {taskAwaitsRatings(task, userInfo) && (
+      <td className="styledTd textAlignEnd nowrap" style={{ width: '702px' }}>
+        <button
+          style={{ marginRight: '10px' }}
+          className={classes(css['button-small-outlined'])}
+          type="button"
+          onClick={notifyUsersClicked}
+        >
+          <Trans i18nKey="Notify" />
+        </button>
+        {taskAwaitsRatings(task, userInfo) ? (
           <a
             href={`?openModal=${
               ModalTypes.TASK_RATINGS_INFO_MODAL
@@ -266,39 +226,15 @@ export const TableUnratedTaskRow: React.FC<TableTaskRowProps> = ({ task }) => {
               <Trans i18nKey="Rate" />
             </button>
           </a>
+        ) : (
+          <button
+            className={classes(css['button-small-filled'])}
+            type="button"
+            disabled
+          >
+            <Trans i18nKey="Rate" />
+          </button>
         )}
-        <div className={classes(css.buttonWrapper)}>
-          <RatingsButton
-            onClick={taskRatingDetailsClicked}
-            href={`?openModal=${
-              ModalTypes.TASK_RATINGS_INFO_MODAL
-            }&modalProps=${encodeURIComponent(
-              JSON.stringify({ taskId: task.id }),
-            )}`}
-          />
-          <InfoButton
-            onClick={taskDetailsClicked}
-            href={`?openModal=${
-              ModalTypes.TASK_INFO_MODAL
-            }&modalProps=${encodeURIComponent(
-              JSON.stringify({ taskId: task.id }),
-            )}`}
-          />
-          {type === RoleType.Admin && (
-            <>
-              <EditButton
-                type="default"
-                onClick={editTaskClicked}
-                href={`?openModal=${
-                  ModalTypes.EDIT_TASK_MODAL
-                }&modalProps=${encodeURIComponent(
-                  JSON.stringify({ taskId: task.id }),
-                )}`}
-              />
-              <DeleteButton type="outlined" onClick={deleteTaskClicked} />
-            </>
-          )}
-        </div>
       </td>
     </tr>
   );

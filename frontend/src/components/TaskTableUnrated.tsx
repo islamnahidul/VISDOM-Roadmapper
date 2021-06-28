@@ -152,25 +152,10 @@ export const TaskTableUnrated: React.FC<{
   };
 
   const tableHeaders: TableHeader[] = [
-    {
-      label: 'Status',
-      sorting: SortingTypes.SORT_STATUS,
-      textAlign: 'center',
-      width: '1em',
-    },
-    { label: 'Title', sorting: SortingTypes.SORT_NAME },
-    { label: 'Description', sorting: SortingTypes.SORT_DESC },
+    { label: 'Task title', sorting: SortingTypes.SORT_NAME },
+    { label: 'Current average value', sorting: SortingTypes.SORT_DESC },
+    { label: 'Current average work', sorting: SortingTypes.SORT_DESC },
     { label: 'Waiting for ratings', sorting: SortingTypes.NO_SORT },
-    {
-      label: 'Rating',
-      sorting: SortingTypes.SORT_RATINGS,
-      width: '1em',
-    },
-    {
-      label: 'Created on',
-      sorting: SortingTypes.SORT_CREATEDAT,
-      width: '8em',
-    },
   ];
 
   const renderUnratedTasks = () => {

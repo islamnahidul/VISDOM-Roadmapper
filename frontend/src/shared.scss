@@ -255,6 +255,10 @@ form {
     background: $COLOR_FOREST;
   }
 
+  &:disabled {
+    background-color: $COLOR_BLACK40;
+  }
+
   align-items: center;
   padding: 10px 16px;
   border-radius: 25px;
@@ -264,6 +268,9 @@ form {
 
   color: white;
   &:hover {
+    color: white;
+  }
+  &:disabled {
     color: white;
   }
 }

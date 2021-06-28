@@ -1,5 +1,16 @@
 @import './../shared.scss';
 
+.taskTitle {
+  border-bottom-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  width: 370px;
+  text-align: left;
+}
+
+.unratedTd {
+  width: 195px;
+}
+
 .buttonWrapper {
   display: inline-block;
   margin: 4px;

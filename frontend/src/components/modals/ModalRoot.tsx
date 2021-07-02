@@ -30,6 +30,7 @@ import {
   TaskRatingsInfoModalProps,
 } from './TaskRatingsInfoModal';
 import { UserAuthTokenModal } from './UserAuthTokenModal';
+import { NotifyUsersModal } from './NotifyUsersModal';
 
 type ModalTypeToComponent = {
   [K in ModalTypes]:
@@ -58,6 +59,7 @@ const Modals: ModalTypeToComponent = {
   [ModalTypes.SETUP_OAUTH_MODAL]: OauthModal,
   [ModalTypes.INTEGRATION_CONFIGURATION_MODAL]: IntegrationConfigurationModal,
   [ModalTypes.USER_AUTH_TOKEN_MODAL]: UserAuthTokenModal,
+  [ModalTypes.NOTIFY_USERS_MODAL]: NotifyUsersModal,
 };
 
 // TODO: move this to css file

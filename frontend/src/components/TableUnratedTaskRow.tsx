@@ -121,10 +121,17 @@ export const TableUnratedTaskRow: React.FC<TableTaskRowProps> = ({ task }) => {
     );
   };
 
-  // TO DO: open notification modal
   const notifyUsersClicked = (e: React.MouseEvent<any, MouseEvent>) => {
     e.preventDefault();
     e.stopPropagation();
+    dispatch(
+      modalsActions.showModal({
+        modalType: ModalTypes.NOTIFY_USERS_MODAL,
+        modalProps: {
+          taskId: task.id,
+        },
+      }),
+    );
   };
 
   return (
@@ -202,14 +209,16 @@ export const TableUnratedTaskRow: React.FC<TableTaskRowProps> = ({ task }) => {
         </div>
       </td>
       <td className="styledTd textAlignEnd nowrap" style={{ width: '702px' }}>
-        <button
-          style={{ marginRight: '10px' }}
-          className={classes(css['button-small-outlined'])}
-          type="button"
-          onClick={notifyUsersClicked}
-        >
-          <Trans i18nKey="Notify" />
-        </button>
+        {type === RoleType.Admin && (
+          <button
+            style={{ marginRight: '10px' }}
+            className={classes(css['button-small-outlined'])}
+            type="button"
+            onClick={notifyUsersClicked}
+          >
+            <Trans i18nKey="Notify" />
+          </button>
+        )}
         {taskAwaitsRatings(task, userInfo) ? (
           <a
             href={`?openModal=${

@@ -56,6 +56,16 @@ const averageRatingsByDimension = (
   );
 };
 
+const totalRatingsByDimension = (
+  task: Task,
+): Map<TaskRatingDimension, number> => {
+  const ratings = task.ratings.reduce((result, { value, dimension }) => {
+    const { sum } = result.get(dimension) || { sum: 0 };
+    return result.set(dimension, { sum: sum + value });
+  }, new Map());
+  return new Map(Array.from(ratings).map(([key, { sum }]) => [key, sum]));
+};
+
 export const totalValueAndWork = (tasks: Task[]) =>
   tasks
     .map((task) => averageRatingsByDimension(task))
@@ -103,50 +113,27 @@ export const calcTaskPriority = (task: Task) => {
 };
 
 export const calcTaskValueSum = (task: Task) => {
-  let ratingValuesSum = 0;
-  task.ratings.forEach((rating) => {
-    if (rating.dimension !== TaskRatingDimension.BusinessValue) return;
-    ratingValuesSum += rating.value;
-  });
-
-  return ratingValuesSum;
+  const ratings = totalRatingsByDimension(task);
+  const totalValue = ratings.get(TaskRatingDimension.BusinessValue) ?? 0;
+  return totalValue;
 };
 
 export const calcTaskWorkSum = (task: Task) => {
-  let ratingWorkSum = 0;
-  task.ratings.forEach((rating) => {
-    if (rating.dimension !== TaskRatingDimension.RequiredWork) return;
-    ratingWorkSum += rating.value;
-  });
-
-  return ratingWorkSum;
+  const ratings = totalRatingsByDimension(task);
+  const totalWork = ratings.get(TaskRatingDimension.RequiredWork) ?? 0;
+  return totalWork;
 };
 
-export const calcAverageTaskWorkSum = (task: Task) => {
-  let ratingWorkSum = 0;
-  let count = 0;
-  task.ratings.forEach((rating) => {
-    if (rating.dimension !== TaskRatingDimension.RequiredWork) return;
-    count += 1;
-    ratingWorkSum += rating.value;
-  });
-  const avg = ratingWorkSum / count;
-  // Round float numbers to 1 decimals
-  return Math.round(avg * 10) / 10;
+export const calcAverageTaskWork = (task: Task) => {
+  const ratings = averageRatingsByDimension(task);
+  const avgWork = ratings.get(TaskRatingDimension.RequiredWork) ?? 0;
+  return avgWork;
 };
 
 export const calcAverageTaskValue = (task: Task) => {
-  let ratingValuesSum = 0;
-  let count = 0;
-  task.ratings.forEach((rating) => {
-    if (rating.dimension !== TaskRatingDimension.BusinessValue) return;
-    count += 1;
-    ratingValuesSum += rating.value;
-  });
-
-  const avg = ratingValuesSum / count;
-  // Round float numbers to 1 decimals
-  return Math.round(avg * 10) / 10;
+  const ratings = averageRatingsByDimension(task);
+  const avgValue = ratings.get(TaskRatingDimension.BusinessValue) ?? 0;
+  return avgValue;
 };
 
 export const filterTasksRatedByUser = (userId: number = -1, rated: boolean) => {
@@ -206,7 +193,7 @@ const taskCompare = (
     case SortingTypes.SORT_AVG_VALUE:
       return sortKeyNumeric(calcAverageTaskValue);
     case SortingTypes.SORT_AVG_WORK:
-      return sortKeyNumeric(calcAverageTaskWorkSum);
+      return sortKeyNumeric(calcAverageTaskWork);
     case SortingTypes.SORT_TOTAL_VALUE:
       return sortKeyNumeric(calcTaskValueSum);
     case SortingTypes.SORT_TOTAL_WORK:

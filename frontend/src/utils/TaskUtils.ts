@@ -313,16 +313,16 @@ export const taskAwaitsRatings = (task: Task, userInfo?: UserInfo) => {
   return !task.ratings.find((rating) => rating.createdByUser === userInfo?.id);
 };
 
-export const tasksThatRequireRating: (
+export const unratedProductOwnerTasks: (
   tasks: Task[],
   allUsers: RoadmapUser[],
   userInfo?: UserInfo,
   currentRoadmap?: Roadmap,
 ) => Task[] | undefined = (tasks, allUsers, userInfo, currentRoadmap) => {
   const type = getType(userInfo?.roles, currentRoadmap?.id);
-  const allCustomers = currentRoadmap?.customers;
 
   if (type === RoleType.Admin) {
+    const allCustomers = currentRoadmap?.customers;
     const developers = allUsers?.filter(
       (user) => user.type === RoleType.Developer,
     );
@@ -351,7 +351,4 @@ export const tasksThatRequireRating: (
     });
     return unrated;
   }
-
-  if (type !== RoleType.Admin)
-    return tasks.filter((task) => taskAwaitsRatings(task, userInfo));
 };
